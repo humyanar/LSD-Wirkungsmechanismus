@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LSD an der Synapse – Lernseite</title>
+  <style>
+    :root {
+      --bg1: #ffffff;
+      --bg2: #f3f4f6;
+      --bg3: #e5e7eb;
+      --card: rgba(255,255,255,0.92);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #d1d5db;
+      --green-bg: #ecfdf5;
+      --green-text: #166534;
+      --red-bg: #fef2f2;
+      --red-text: #991b1b;
+      --button: #111827;
+      --button-hover: #1f2937;
+      --button-secondary: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at center, var(--bg1) 0%, var(--bg2) 65%, var(--bg3) 100%);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .card {
+      background: var(--card);
+      border-radius: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    h1 { margin: 0 0 10px; font-size: clamp(28px, 4vw, 40px); }
+    p { line-height: 1.5; }
+    .topbar {
+      display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+    .video-card h2 { margin-top: 0; font-size: 22px; }
+    video {
+      width: 100%;
+      border-radius: 20px;
+      background: #000;
+      border: 1px solid var(--border);
+    }
+    .controls { margin-top: 14px; display: flex; gap: 12px; flex-wrap: wrap; }
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .primary { background: var(--button); color: white; }
+    .primary:hover { background: var(--button-hover); }
+    .secondary { background: var(--button-secondary); color: var(--text); }
+    .selected { outline: 3px solid #64748b; }
+    .feedback { border-radius: 24px; padding: 20px; margin-bottom: 24px; display: none; }
+    .feedback.show { display: block; }
+    .feedback.correct { background: var(--green-bg); color: var(--green-text); }
+    .feedback.wrong { background: var(--red-bg); color: var(--red-text); }
+    .questions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .question h3 { margin-top: 0; font-size: 20px; }
+    .option {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .option.active { border-color: #334155; background: #f8fafc; }
+    .result {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      display: none;
+      font-weight: bold;
+    }
+    .result.show { display: block; }
+    .result.correct { background: var(--green-bg); color: var(--green-text); }
+    .result.wrong { background: var(--red-bg); color: var(--red-text); }
+    @media (max-width: 900px) {
+      .grid, .questions { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <h1>Wähle den richtigen Mechanismus aus</h1>
+          <p>Vergleiche beide Videos. Eines zeigt den richtigen Wirkmechanismus von LSD an der Synapse. Das andere zeigt eine typische Fehlvorstellung.</p>
+        </div>
+        <button class="secondary" onclick="resetAll()">Alles zurücksetzen</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card video-card">
+        <h2>Video A</h2>
+        <video id="videoA" controls>
+          <source src="lsd_richtig.mp4" type="video/mp4" />
+        </video>
+        <div class="controls">
+          <button id="chooseA" class="secondary" onclick="choose('A')">Dieses Video auswählen</button>
+        </div>
+      </div>
+
+      <div class="card video-card">
+        <h2>Video B</h2>
+        <video id="videoB" controls>
+          <source src="lsd_falsch.mp4" type="video/mp4" />
+        </video>
+        <div class="controls">
+          <button id="chooseB" class="secondary" onclick="choose('B')">Dieses Video auswählen</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div class="questions">
+      <div class="card question" id="q1">
+        <h3>Welche Wirkung kann LSD beim Menschen haben?</h3>
+        <button class="option" onclick="selectOption('q1',0,this)">Es kann Wahrnehmung, Denken und Gefühle stark verändern.</button>
+        <button class="option" onclick="selectOption('q1',1,this)">Es lässt Muskeln schneller wachsen.</button>
+        <button class="option" onclick="selectOption('q1',2,this)">Es zerstört sofort alle Nervenzellen.</button>
+        <button class="option" onclick="selectOption('q1',3,this)">Es verhindert grundsätzlich jedes Denken.</button>
+        <div class="controls">
+          <button class="primary" onclick="checkQuestion('q1',0)">Prüfen</button>
+          <button class="secondary" onclick="resetQuestion('q1')">Zurücksetzen</button>
+        </div>
+        <div class="result" id="q1-result"></div>
+      </div>
+
+      <div class="card question" id="q2">
+        <h3>Warum bleibt LSD länger an einem Rezeptor wirksam?</h3>
+        <button class="option" onclick="selectOption('q2',0,this)">Weil es im synaptischen Bereich nicht so schnell entfernt oder abgebaut wird.</button>
+        <button class="option" onclick="selectOption('q2',1,this)">Weil der Rezeptor nach der Bindung verschwindet.</button>
+        <button class="option" onclick="selectOption('q2',2,this)">Weil gar keine Bindung stattfindet.</button>
+        <button class="option" onclick="selectOption('q2',3,this)">Weil die Nervenzelle danach keine Signale mehr senden kann.</button>
+        <div class="controls">
+          <button class="primary" onclick="checkQuestion('q2',0)">Prüfen</button>
+          <button class="secondary" onclick="resetQuestion('q2')">Zurücksetzen</button>
+        </div>
+        <div class="result" id="q2-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const answers = { q1: null, q2: null };
+
+    function choose(letter) {
+      document.getElementById('chooseA').classList.remove('selected');
+      document.getElementById('chooseB').classList.remove('selected');
+      document.getElementById('choose' + letter).classList.add('selected');
+
+      const feedback = document.getElementById('feedback');
+      feedback.classList.add('show');
+
+      if (letter === 'A') {
+        feedback.className = 'feedback show correct';
+        feedback.innerHTML = '<strong>Richtig!</strong><br>Dieses Video zeigt den richtigen Mechanismus: LSD dockt an passende Rezeptoren der Postsynapse an und kann dadurch einen elektrischen Impuls auslösen.';
+      } else {
+        feedback.className = 'feedback show wrong';
+        feedback.innerHTML = '<strong>Leider nicht richtig.</strong><br>Dieses Video zeigt die Fehlvorstellung: LSD dockt zwar an Rezeptoren an, löst hier aber keinen Impuls aus. Genau das ist bei der gesuchten Darstellung falsch.';
+      }
+    }
+
+    function resetAll() {
+      document.getElementById('videoA').pause();
+      document.getElementById('videoB').pause();
+      document.getElementById('videoA').currentTime = 0;
+      document.getElementById('videoB').currentTime = 0;
+      document.getElementById('chooseA').classList.remove('selected');
+      document.getElementById('chooseB').classList.remove('selected');
+      const feedback = document.getElementById('feedback');
+      feedback.className = 'feedback';
+      feedback.innerHTML = '';
+      resetQuestion('q1');
+      resetQuestion('q2');
+    }
+
+    function selectOption(qid, index, el) {
+      answers[qid] = index;
+      document.querySelectorAll('#' + qid + ' .option').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function checkQuestion(qid, correctIndex) {
+      const result = document.getElementById(qid + '-result');
+      if (answers[qid] === null) {
+        result.className = 'result show wrong';
+        result.textContent = 'Bitte zuerst eine Antwort auswählen.';
+        return;
+      }
+      if (answers[qid] === correctIndex) {
+        result.className = 'result show correct';
+        result.textContent = 'Richtig.';
+      } else {
+        const correctText = document.querySelectorAll('#' + qid + ' .option')[correctIndex].textContent;
+        result.className = 'result show wrong';
+        result.textContent = 'Nicht richtig. Richtig ist: ' + correctText;
+      }
+    }
+
+    function resetQuestion(qid) {
+      answers[qid] = null;
+      document.querySelectorAll('#' + qid + ' .option').forEach(btn => btn.classList.remove('active'));
+      const result = document.getElementById(qid + '-result');
+      result.className = 'result';
+      result.textContent = '';
+    }
+  </script>
+</body>
+</html>
